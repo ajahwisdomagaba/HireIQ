@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeft,
   Sparkles,
@@ -20,7 +20,7 @@ import {
   Copy,
   Check,
   ExternalLink,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface EligibleCandidate {
   applicationId: string;
@@ -32,18 +32,22 @@ interface EligibleCandidate {
 export default function OfferGeneratorPage() {
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'offer' | 'ref_checks'>('offer');
-  const [eligibleCandidates, setEligibleCandidates] = useState<EligibleCandidate[]>([]);
+  const [activeTab, setActiveTab] = useState<"offer" | "ref_checks">("offer");
+  const [eligibleCandidates, setEligibleCandidates] = useState<
+    EligibleCandidate[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [sending, setSending] = useState(false);
 
   // Form Fields
-  const [selectedAppId, setSelectedAppId] = useState('');
+  const [selectedAppId, setSelectedAppId] = useState("");
   const [monthlyGross, setMonthlyGross] = useState<number>(2800000);
   const [fxPegging, setFxPegging] = useState<boolean>(true);
-  const [equityOptions, setEquityOptions] = useState<string>('0.25% Stock Options (4-year vesting, 1-year cliff)');
-  const [startDate, setStartDate] = useState<string>('2026-09-15');
+  const [equityOptions, setEquityOptions] = useState<string>(
+    "0.25% Stock Options (4-year vesting, 1-year cliff)",
+  );
+  const [startDate, setStartDate] = useState<string>("2026-09-15");
   const [validityDays, setValidityDays] = useState<number>(7);
 
   // State of generated draft
@@ -51,18 +55,25 @@ export default function OfferGeneratorPage() {
   const [copied, setCopied] = useState(false);
 
   // Reference Check Form Fields
-  const [channelDelivery, setChannelDelivery] = useState<'whatsapp' | 'email'>('whatsapp');
-  const [refereeName, setRefereeName] = useState('Engr. Babafemi Alabi (VP Engineering, Kuda Bank)');
-  const [refereePhone, setRefereePhone] = useState('+234 802 334 9912');
-  const [refereeEmail, setRefereeEmail] = useState('babafemi.alabi@kudabank.ng');
+  const [channelDelivery, setChannelDelivery] = useState<"whatsapp" | "email">(
+    "whatsapp",
+  );
+  const [refereeName, setRefereeName] = useState(
+    "Engr. Babafemi Alabi (VP Engineering, Kuda Bank)",
+  );
+  const [refereePhone, setRefereePhone] = useState("+234 802 334 9912");
+  const [refereeEmail, setRefereeEmail] = useState(
+    "babafemi.alabi@kudabank.ng",
+  );
 
   const nafemRate = 1450;
 
+  const portalUrl = `${window.location.origin}/ref/verify/${selectedAppId}`;
   useEffect(() => {
     async function loadCandidates() {
       try {
         setLoading(true);
-        const res = await fetch('/api/v1/offers');
+        const res = await fetch("/api/v1/offers");
         if (res.ok) {
           const data = await res.json();
           const candidates: EligibleCandidate[] = data.eligibleCandidates || [];
@@ -72,7 +83,7 @@ export default function OfferGeneratorPage() {
           }
         }
       } catch (err) {
-        console.error('Failed to load eligible candidates:', err);
+        console.error("Failed to load eligible candidates:", err);
       } finally {
         setLoading(false);
       }
@@ -81,13 +92,15 @@ export default function OfferGeneratorPage() {
   }, []);
 
   const selectedCandidate = useMemo(() => {
-    return eligibleCandidates.find((c) => c.applicationId === selectedAppId) || null;
+    return (
+      eligibleCandidates.find((c) => c.applicationId === selectedAppId) || null
+    );
   }, [eligibleCandidates, selectedAppId]);
 
   const annualGross = monthlyGross * 12;
   const usdEquivalent = Math.round(monthlyGross / nafemRate);
   const employeePension = Math.round(monthlyGross * 0.08);
-  const employerPension = Math.round(monthlyGross * 0.10);
+  const employerPension = Math.round(monthlyGross * 0.1);
 
   // 1. Generate Draft
   const handleGenerateDraft = async (e: React.FormEvent) => {
@@ -96,9 +109,9 @@ export default function OfferGeneratorPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/v1/offers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/v1/offers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           applicationId: selectedAppId,
           baseSalaryNGN: annualGross,
@@ -111,10 +124,10 @@ export default function OfferGeneratorPage() {
         setDraftedOffer(data.offer);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error || 'Failed to generate draft offer document.');
+        alert(err.error || "Failed to generate draft offer document.");
       }
     } catch (err) {
-      alert('Network error while generating draft offer.');
+      alert("Network error while generating draft offer.");
     } finally {
       setSubmitting(false);
     }
@@ -127,19 +140,19 @@ export default function OfferGeneratorPage() {
     setSending(true);
     try {
       const res = await fetch(`/api/v1/offers/${draftedOffer.id}/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ validityDays }),
       });
 
       if (res.ok) {
-        router.push('/dashboard/offers');
+        router.push("/dashboard/offers");
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error || 'Failed to dispatch offer.');
+        alert(err.error || "Failed to dispatch offer.");
       }
     } catch (err) {
-      alert('Network error while sending offer.');
+      alert("Network error while sending offer.");
     } finally {
       setSending(false);
     }
@@ -196,7 +209,9 @@ export default function OfferGeneratorPage() {
           </Link>
           <span>/</span>
           <span className="text-slate-200">
-            {activeTab === 'offer' ? 'Draft Statutory Offer' : 'Reference Checks'}
+            {activeTab === "offer"
+              ? "Draft Statutory Offer"
+              : "Reference Checks"}
           </span>
         </div>
 
@@ -209,18 +224,19 @@ export default function OfferGeneratorPage() {
               Statutory Offer Drafter & Verification
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Draft compliant offer contracts, review clauses, and trigger dispatch when approved.
+              Draft compliant offer contracts, review clauses, and trigger
+              dispatch when approved.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setActiveTab('ref_checks')}
+              onClick={() => setActiveTab("ref_checks")}
               className={`px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
-                activeTab === 'ref_checks'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                activeTab === "ref_checks"
+                  ? "bg-slate-900 text-white"
+                  : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
@@ -228,11 +244,11 @@ export default function OfferGeneratorPage() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('offer')}
+              onClick={() => setActiveTab("offer")}
               className={`px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
-                activeTab === 'offer'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                activeTab === "offer"
+                  ? "bg-slate-900 text-white"
+                  : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -241,7 +257,7 @@ export default function OfferGeneratorPage() {
           </div>
         </div>
 
-        {activeTab === 'offer' && (
+        {activeTab === "offer" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -264,9 +280,11 @@ export default function OfferGeneratorPage() {
                     </span>
                   </div>
                   <p className="text-[11px] text-emerald-900 leading-relaxed">
-                    This document is saved as a draft and is <strong>not yet accessible</strong> to the candidate. Click below to officially extend the offer.
+                    This document is saved as a draft and is{" "}
+                    <strong>not yet accessible</strong> to the candidate. Click
+                    below to officially extend the offer.
                   </p>
-                  
+
                   <div className="flex items-center gap-2 pt-1">
                     <button
                       type="button"
@@ -288,13 +306,20 @@ export default function OfferGeneratorPage() {
                       title="Copy Candidate Portal Link"
                       className="p-2.5 bg-white border border-emerald-300 hover:bg-emerald-100 text-emerald-800 rounded-xl transition"
                     >
-                      {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                      {copied ? (
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
               )}
 
-              <form onSubmit={handleGenerateDraft} className="space-y-4 text-xs">
+              <form
+                onSubmit={handleGenerateDraft}
+                className="space-y-4 text-xs"
+              >
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                     Candidate (Stage: Offer Extended)
@@ -302,7 +327,8 @@ export default function OfferGeneratorPage() {
                   {eligibleCandidates.length === 0 ? (
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-[11px] leading-relaxed">
                       <AlertCircle className="w-4 h-4 text-amber-600 inline mr-1" />
-                      No candidate is in the <strong>Offer Extended</strong> stage. Advance a candidate on the Kanban board first.
+                      No candidate is in the <strong>Offer Extended</strong>{" "}
+                      stage. Advance a candidate on the Kanban board first.
                     </div>
                   ) : (
                     <select
@@ -311,7 +337,10 @@ export default function OfferGeneratorPage() {
                       className="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-3 py-2.5 font-semibold outline-none focus:border-indigo-600"
                     >
                       {eligibleCandidates.map((cand) => (
-                        <option key={cand.applicationId} value={cand.applicationId}>
+                        <option
+                          key={cand.applicationId}
+                          value={cand.applicationId}
+                        >
                           {cand.candidateName} — {cand.jobTitle}
                         </option>
                       ))}
@@ -336,7 +365,8 @@ export default function OfferGeneratorPage() {
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" /> USD FX Pegging Protection
+                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />{" "}
+                      USD FX Pegging Protection
                     </span>
                     <input
                       type="checkbox"
@@ -346,7 +376,9 @@ export default function OfferGeneratorPage() {
                     />
                   </div>
                   <p className="text-[10px] text-slate-500">
-                    Calculated baseline: <strong>${usdEquivalent.toLocaleString()} / mo</strong> @ ₦{nafemRate}/$ NAFEM benchmark.
+                    Calculated baseline:{" "}
+                    <strong>${usdEquivalent.toLocaleString()} / mo</strong> @ ₦
+                    {nafemRate}/$ NAFEM benchmark.
                   </p>
                 </div>
 
@@ -385,7 +417,9 @@ export default function OfferGeneratorPage() {
                     className="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-3 py-2 outline-none focus:border-indigo-600"
                   >
                     <option value={3}>3 Days (Fast-Track Expiry)</option>
-                    <option value={7}>7 Days (Standard Statutory Window)</option>
+                    <option value={7}>
+                      7 Days (Standard Statutory Window)
+                    </option>
                     <option value={14}>14 Days</option>
                   </select>
                 </div>
@@ -403,7 +437,8 @@ export default function OfferGeneratorPage() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4" /> Generate Compliant Offer Document (Draft)
+                        <Sparkles className="w-4 h-4" /> Generate Compliant
+                        Offer Document (Draft)
                       </>
                     )}
                   </button>
@@ -436,15 +471,18 @@ export default function OfferGeneratorPage() {
 
                 <div>
                   <p className="font-bold text-sm text-slate-900">
-                    Dear {selectedCandidate?.candidateName || 'Candidate'},
+                    Dear {selectedCandidate?.candidateName || "Candidate"},
                   </p>
                   <p className="mt-2 text-slate-600">
-                    We are delighted to offer you the position of{' '}
+                    We are delighted to offer you the position of{" "}
                     <strong className="text-slate-900">
-                      {selectedCandidate?.jobTitle || 'Software Engineer'}
-                    </strong>{' '}
-                    with our organization in Lagos, Nigeria, starting on{' '}
-                    <strong className="font-mono text-slate-900">{startDate}</strong>.
+                      {selectedCandidate?.jobTitle || "Software Engineer"}
+                    </strong>{" "}
+                    with our organization in Lagos, Nigeria, starting on{" "}
+                    <strong className="font-mono text-slate-900">
+                      {startDate}
+                    </strong>
+                    .
                   </p>
                 </div>
 
@@ -454,18 +492,27 @@ export default function OfferGeneratorPage() {
                   </h3>
                   <ul className="space-y-1.5 text-slate-700 pl-1">
                     <li>
-                      • <strong>Monthly Gross Salary:</strong> ₦{monthlyGross.toLocaleString()} NGN (₦{annualGross.toLocaleString()} per annum)
+                      • <strong>Monthly Gross Salary:</strong> ₦
+                      {monthlyGross.toLocaleString()} NGN (₦
+                      {annualGross.toLocaleString()} per annum)
                     </li>
                     {fxPegging && (
                       <li>
-                        • <strong>FX Pegging Clause:</strong> Compensation is pegged to USD ${usdEquivalent.toLocaleString()} with quarterly adjustments against official NAFEM rates.
+                        • <strong>FX Pegging Clause:</strong> Compensation is
+                        pegged to USD ${usdEquivalent.toLocaleString()} with
+                        quarterly adjustments against official NAFEM rates.
                       </li>
                     )}
                     <li>
-                      • <strong>Statutory Pension:</strong> 8% employee contribution (₦{employeePension.toLocaleString()}/mo), 10% employer contribution (₦{employerPension.toLocaleString()}/mo) remitted per Pension Reform Act 2014.
+                      • <strong>Statutory Pension:</strong> 8% employee
+                      contribution (₦{employeePension.toLocaleString()}/mo), 10%
+                      employer contribution (₦{employerPension.toLocaleString()}
+                      /mo) remitted per Pension Reform Act 2014.
                     </li>
                     <li>
-                      • <strong>PAYE Tax & NHF:</strong> Computed and deducted in strict compliance with Lagos State Internal Revenue Service (LIRS).
+                      • <strong>PAYE Tax & NHF:</strong> Computed and deducted
+                      in strict compliance with Lagos State Internal Revenue
+                      Service (LIRS).
                     </li>
                     {equityOptions && (
                       <li>
@@ -481,21 +528,27 @@ export default function OfferGeneratorPage() {
                   </h3>
                   <ul className="space-y-1.5 text-slate-600 pl-1">
                     <li>
-                      • <strong>Probationary Period:</strong> 3 months with formal review.
+                      • <strong>Probationary Period:</strong> 3 months with
+                      formal review.
                     </li>
                     <li>
-                      • <strong>Termination Notice:</strong> 1 month notice or salary in lieu after confirmation.
+                      • <strong>Termination Notice:</strong> 1 month notice or
+                      salary in lieu after confirmation.
                     </li>
                     <li>
-                      • <strong>HMO Coverage:</strong> Comprehensive private health insurance across top tier Nigerian hospitals.
+                      • <strong>HMO Coverage:</strong> Comprehensive private
+                      health insurance across top tier Nigerian hospitals.
                     </li>
                   </ul>
                 </div>
 
                 <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                  <span>Please sign below via digital acceptance before the expiration date.</span>
+                  <span>
+                    Please sign below via digital acceptance before the
+                    expiration date.
+                  </span>
                   <span className="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    {draftedOffer ? 'Draft Approved' : 'Draft Preview'}
+                    {draftedOffer ? "Draft Approved" : "Draft Preview"}
                   </span>
                 </div>
               </div>
@@ -503,7 +556,7 @@ export default function OfferGeneratorPage() {
           </div>
         )}
 
-        {activeTab === 'ref_checks' && (
+        {activeTab === "ref_checks" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -524,7 +577,10 @@ export default function OfferGeneratorPage() {
                     className="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-3 py-2.5 font-semibold outline-none focus:border-emerald-600"
                   >
                     {eligibleCandidates.map((cand) => (
-                      <option key={cand.applicationId} value={cand.applicationId}>
+                      <option
+                        key={cand.applicationId}
+                        value={cand.applicationId}
+                      >
                         {cand.candidateName} ({cand.jobTitle})
                       </option>
                     ))}
@@ -550,11 +606,11 @@ export default function OfferGeneratorPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setChannelDelivery('whatsapp')}
+                      onClick={() => setChannelDelivery("whatsapp")}
                       className={`p-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
-                        channelDelivery === 'whatsapp'
-                          ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        channelDelivery === "whatsapp"
+                          ? "border-emerald-500 bg-emerald-50/50 text-emerald-700"
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
@@ -563,11 +619,11 @@ export default function OfferGeneratorPage() {
 
                     <button
                       type="button"
-                      onClick={() => setChannelDelivery('email')}
+                      onClick={() => setChannelDelivery("email")}
                       className={`p-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
-                        channelDelivery === 'email'
-                          ? 'border-indigo-500 bg-indigo-50/50 text-indigo-700'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        channelDelivery === "email"
+                          ? "border-indigo-500 bg-indigo-50/50 text-indigo-700"
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       <Mail className="w-3.5 h-3.5 text-indigo-600" />
@@ -576,7 +632,7 @@ export default function OfferGeneratorPage() {
                   </div>
                 </div>
 
-                {channelDelivery === 'whatsapp' ? (
+                {channelDelivery === "whatsapp" ? (
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                       WhatsApp / Phone Number
@@ -611,24 +667,30 @@ export default function OfferGeneratorPage() {
                 )}
 
                 <div className="pt-2">
-                  {channelDelivery === 'whatsapp' ? (
+                  {channelDelivery === "whatsapp" ? (
                     <a
-                      href={`https://wa.me/${refereePhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                        `Hello ${refereeName}, HireIQ is conducting a brief statutory verification for ${selectedCandidate?.candidateName || 'the candidate'}. Please review tenure & integrity: https://hireiq.ng/ref/verify/${selectedAppId || 'token'}`
+                      href={`https://wa.me/${refereePhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                        `Hello ${refereeName}, HireIQ is conducting a brief statutory verification for ${selectedCandidate?.candidateName || "the candidate"}. Please review tenure & integrity: https://hireiq.ng/ref/verify/${selectedAppId || "token"}`,
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-sm transition"
                     >
-                      <Send className="w-4 h-4" /> Send WhatsApp Reference Questionnaire
+                      <Send className="w-4 h-4" /> Send WhatsApp Reference
+                      Questionnaire
                     </a>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => alert(`Reference verification questionnaire dispatched to ${refereeEmail}`)}
+                      onClick={() =>
+                        alert(
+                          `Reference verification questionnaire dispatched to ${refereeEmail}`,
+                        )
+                      }
                       className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-sm transition"
                     >
-                      <Mail className="w-4 h-4" /> Dispatch Email Verification Form
+                      <Mail className="w-4 h-4" /> Dispatch Email Verification
+                      Form
                     </button>
                   )}
                 </div>
@@ -640,14 +702,18 @@ export default function OfferGeneratorPage() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   AI Parsed Referee Verification Feed
                 </h3>
-                <span className="text-[10px] text-slate-400 font-mono">Live Sync</span>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  Live Sync
+                </span>
               </div>
 
               <div className="space-y-4">
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-slate-900">Chinedu Okafor</h4>
+                      <h4 className="font-bold text-slate-900">
+                        Chinedu Okafor
+                      </h4>
                       <p className="text-[11px] text-slate-500">
                         Referee: Tunde Kelani (Head of Core Banking, Kuda)
                       </p>
@@ -658,29 +724,36 @@ export default function OfferGeneratorPage() {
                   </div>
 
                   <p className="text-slate-600 italic">
-                    "Chinedu was one of our strongest backend engineers. He built our settlement webhook queue that reduced duplicate merchant debits. Reliable and humble."
+                    "Chinedu was one of our strongest backend engineers. He
+                    built our settlement webhook queue that reduced duplicate
+                    merchant debits. Reliable and humble."
                   </p>
 
                   <div className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Consistent • Verified True
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Consistent •
+                    Verified True
                   </div>
                 </div>
 
                 <div className="p-4 bg-rose-50/50 rounded-xl border border-rose-200 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-slate-900">Babatunde Adeleke</h4>
+                      <h4 className="font-bold text-slate-900">
+                        Babatunde Adeleke
+                      </h4>
                       <p className="text-[11px] text-slate-500">
                         Referee: Emeka Nwasu (Former Colleague)
                       </p>
                     </div>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> INCONSISTENCY FLAGGED
+                      <AlertTriangle className="w-3 h-3" /> INCONSISTENCY
+                      FLAGGED
                     </span>
                   </div>
 
                   <p className="text-slate-600 italic">
-                    "He worked on frontend landing pages for our app. He was not the CTO and did not manage 50 engineers as claimed."
+                    "He worked on frontend landing pages for our app. He was not
+                    the CTO and did not manage 50 engineers as claimed."
                   </p>
 
                   <div className="text-[11px] font-bold text-rose-700 bg-rose-100/60 p-2 rounded-lg border border-rose-200">

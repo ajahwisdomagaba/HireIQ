@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "mcp": "tsx scripts/mcp-runner.ts",
     "postinstall": "prisma skills sync || exit 0",
     "worker": "tsx --env-file=.env scripts/worker.ts"
   },
@@ -15,6 +16,7 @@
     "@aws-sdk/client-s3": "^3.1123.0",
     "@aws-sdk/s3-request-presigner": "^3.1123.0",
     "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.3.4",
@@ -44,6 +46,6 @@
     "tailwindcss": "^3.4.19",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.13",
-    "typescript": "^5.4.0"
+    "typescript": "^5.9.3"
   }
 }

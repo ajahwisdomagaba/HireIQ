@@ -2,15 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Briefcase, Plus, MapPin, Building2, Users, ArrowUpRight } from 'lucide-react';
+import {
+  Briefcase,
+  Plus,
+  MapPin,
+  Building2,
+  Users,
+  ArrowUpRight,
+  Share2,
+} from 'lucide-react';
+import MultiChannelBroadcastModal from '@/components/jobs/MultiChannelBroadcastModal';
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Multi-Channel Broadcast Modal States
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [selectedJobForBroadcast, setSelectedJobForBroadcast] = useState<{
+    id: string;
+    title: string;
+    companyName: string;
+  } | null>(null);
+
   useEffect(() => {
     async function loadJobs() {
       try {
+        setLoading(true);
         const res = await fetch('/api/v1/jobs');
         if (res.ok) {
           const data = await res.json();
@@ -27,6 +45,7 @@ export default function JobsPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 text-slate-100">
+      {/* Top Banner Header */}
       <div className="flex justify-between items-center border-b border-slate-800/80 pb-6">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
@@ -74,21 +93,55 @@ export default function JobsPage() {
                 </span>
               </div>
 
+              {/* Bottom Card Actions */}
               <div className="flex justify-between items-center pt-3 border-t border-slate-800/60 text-xs">
                 <span className="text-slate-400 flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-sky-400" />
                   <strong className="text-white">{job._count?.applications || 0}</strong> candidates
                 </span>
-                <Link
-                  href={`/dashboard/jobs/${job.id}/pipeline`}
-                  className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold"
-                >
-                  View Pipeline <ArrowUpRight className="h-3.5 w-3.5" />
-                </Link>
+
+                <div className="flex items-center gap-2">
+                  {/* Multi-Channel Broadcast Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedJobForBroadcast({
+                        id: job.id,
+                        title: job.title,
+                        companyName: job.company?.name || 'HireIQ Network',
+                      });
+                      setIsBroadcastModalOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg border border-slate-700/80 hover:border-slate-600 bg-slate-800/50 hover:bg-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1"
+                    title="Broadcast to Telegram, LinkedIn & Jobberman"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-sky-400" />
+                    <span className="text-[11px] font-semibold">Broadcast</span>
+                  </button>
+
+                  <Link
+                    href={`/dashboard/jobs/${job.id}/pipeline`}
+                    className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold ml-1"
+                  >
+                    View Pipeline <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Broadcast Modal Instance */}
+      {selectedJobForBroadcast && (
+        <MultiChannelBroadcastModal
+          job={selectedJobForBroadcast}
+          isOpen={isBroadcastModalOpen}
+          onClose={() => {
+            setIsBroadcastModalOpen(false);
+            setSelectedJobForBroadcast(null);
+          }}
+        />
       )}
     </div>
   );
